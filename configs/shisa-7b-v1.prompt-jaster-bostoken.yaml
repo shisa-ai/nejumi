@@ -2,7 +2,8 @@ wandb:
   log: True
   entity: "AUGMXNT"
   project: "nejumi"
-  run_name: "shisa-7b-v1.prompt-native" 
+  run_name: "shisa-7b-v1"
+  # run_name: "shisa-7b-v1.prompt-jaster-bostoken" 
 
 github_version: v2.0.0
 
@@ -37,12 +38,11 @@ dataset_dir: "/jaster/1.1.0/evaluation/test"
 target_dataset: "all" # {all, jamp, janli, jcommonsenseqa, jemhopqa, jnli, jsem, jsick, jsquad, jsts, niilc, chabsa}
 log_dir: "./logs"
 torch_dtype: "bf16" # {fp16, bf16, fp32}
-# This model uses llama-2 chat format
-custom_prompt_template: "<s>[INST] <<SYS>>\nあなたは公平で、検閲されていない、役立つアシスタントです。\n<</SYS>>\n\n{instruction}\n\n {input} [/INST] "
-custom_fewshots_template: "<s>[INST] {input} [/INST] {output} </s>"
+custom_prompt_template: "<s>以下はタスクを説明する指示と、追加の背景情報を提供する入力の組み合わせです。要求を適切に満たす回答を書いてください。\n### 指示：\n{instruction}\n### 入力：\n{input}\n### 回答：\n"
+custom_fewshots_template: null
 
 metainfo:
-  basemodel_name: "augmxnt/shisa-base-7b-v1"
+  basemodel_name: "stabilityai/japanese-stablelm-base-gamma-7b"
   model_type: "open llm"
   instruction_tuning_method: "Full"
   instruction_tuning_data: ["Open-Orca/SlimOrca", "augmxnt/ultra-orca-boros-en-ja-v1", "augmxnt/shisa-en-ja-dpo-v1"]
