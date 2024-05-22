@@ -12,19 +12,42 @@ from config_singleton import WandbConfigSingleton
 from cleanup import cleanup_gpu
 
 # Configuration loading
-if os.path.exists("configs/config.yaml"):
-    cfg = OmegaConf.load("configs/config.yaml")
-    cfg_dict = OmegaConf.to_container(cfg, resolve=True)
-    assert isinstance(cfg_dict, dict)
-else:
-    # Provide default settings in case config.yaml does not exist
-    cfg_dict = {
-        'wandb': {
-            'entity': 'default_entity',
-            'project': 'default_project',
-            'run_name': 'default_run_name'
-        }
-    }
+config_paths = []
+
+config_file = sys.argv[1] if len(sys.argv) > 1 else None
+
+if config_file:
+    # Add direct file
+    config_paths.append(config_file)
+
+    # Look for yaml/yml
+    if not config_file.endswith(('.yaml', '.yml')):
+        config_paths.append(f"{config_file}.yaml")
+        config_paths.append(f"{config_file}.yml")
+       
+    # look in configs dir
+    config_paths.append(f"configs/{config_file}")
+    if not config_file.endswith(('.yaml', '.yml')):
+        config_paths.append(f"configs/{config_file}.yaml")
+        config_paths.append(f"configs/{config_file}.yml")
+
+    # Default config path
+    config_paths.append("configs/config.yaml")
+
+# Try to find and load the config file
+cfg_dict = None
+for path in config_paths:
+    if os.path.exists(path):
+        cfg = OmegaConf.load(path)
+        cfg_dict = OmegaConf.to_container(cfg, resolve=True)
+        assert isinstance(cfg_dict, dict)
+        break
+
+# No configs, let's exit...
+if not cfg_dict:
+    print("Either pass a YAML config file or have a default `configs/config.yaml` - We won't run without one.")
+    sys.exit()
+
 
 # W&B setup and artifact handling
 wandb.login()
@@ -62,8 +85,8 @@ evaluate()
 cleanup_gpu()
 
 # 2. mt-bench evaluation
-mtbench_evaluate()
-cleanup_gpu()
+# mtbench_evaluate()
+# cleanup_gpu()
 
 # Logging results to W&B
 if cfg.wandb.log and run is not None:
